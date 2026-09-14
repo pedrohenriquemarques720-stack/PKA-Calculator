@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora & Painel de Catch - Poké Alliance</title>
+  <title>PKA Ultimate Hub - Painel Completo de Suporte</title>
   <style>
     :root {
       --bg-color: #0d1117;
@@ -29,21 +29,57 @@
     }
 
     .container {
-      max-width: 950px;
+      max-width: 1050px;
       width: 100%;
     }
 
     h1 {
       color: var(--text-bright);
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     p.subtitle {
       text-align: center;
       color: #8b949e;
       margin-top: 0;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+    }
+
+    /* SISTEMA DE ABAS */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      padding: 10px 18px;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-alliance);
+      color: #fff;
+      border-color: var(--accent-alliance);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
 
     .card {
@@ -100,7 +136,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 4px;
     }
 
     .checkbox-label {
@@ -175,9 +210,7 @@
       font-weight: 600;
     }
 
-    tr:last-child td {
-      border-bottom: none;
-    }
+    tr:last-child td { border-bottom: none; }
 
     .btn {
       background-color: var(--accent-green);
@@ -190,13 +223,9 @@
       font-size: 14px;
     }
 
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .btn-danger {
-      background-color: var(--accent-premier);
-    }
+    .btn:hover { opacity: 0.9; }
+    .btn-danger { background-color: var(--accent-premier); }
+    .btn-blue { background-color: var(--accent-alliance); }
 
     .tag {
       display: inline-block;
@@ -211,9 +240,14 @@
     .tag-premier { background-color: #dc2626; }
     .tag-alliance { background-color: #2563eb; }
 
-    .highlight {
+    .type-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
       font-weight: bold;
-      color: var(--text-bright);
+      font-size: 12px;
+      margin: 2px;
+      color: #fff;
     }
 
     .footer-note {
@@ -226,292 +260,456 @@
 <body>
 
 <div class="container">
-  <h1>Calculadora & Painel de Catch</h1>
-  <p class="subtitle">Análise probabilística, financeira e histórico de hunts para Poké Alliance</p>
+  <h1>PKA Ultimate Hub</h1>
+  <p class="subtitle">Calculadora de Catch, Lucro por Hunt, Counters Elementais, XP e Cooldowns</p>
 
-  <!-- CALCULADORA DE PROBABILIDADE E ECONOMIA -->
-  <div class="card">
-    <h2 class="card-title">Simulador Avançado de Catch & Mercado</h2>
-    
-    <div class="calc-grid">
-      <div class="input-group">
-        <label for="calcTier">Tier do Pokémon:</label>
-        <select id="calcTier" onchange="calculateAll()">
-          <option value="1280">T1 (Pity 1.280)</option>
-          <option value="3560" selected>SR (Pity 3.560)</option>
-          <option value="7120">UR (Pity 7.120)</option>
-          <option value="14240">Mythic (Pity 14.240)</option>
-          <option value="28480">Legendary (Pity 28.480)</option>
-        </select>
-      </div>
+  <!-- SELETOR DE ABAS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tabCatch')">Calculadora de Catch</button>
+    <button class="tab-btn" onclick="switchTab('tabLucro')">Lucro por Hunt</button>
+    <button class="tab-btn" onclick="switchTab('tabCounters')">Calculadora de Elements</button>
+    <button class="tab-btn" onclick="switchTab('tabXP')">Simulador de Level / XP</button>
+    <button class="tab-btn" onclick="switchTab('tabCooldowns')">Gerenciador de Cooldowns</button>
+  </div>
 
-      <div class="input-group">
-        <label for="calcBall">Tipo de Pokébola:</label>
-        <select id="calcBall" onchange="calculateAll()">
-          <option value="5" selected>Alliance Ball (5x)</option>
-          <option value="4">Premier Ball (4x)</option>
-        </select>
-      </div>
-
-      <div class="input-group">
-        <label for="calcCount">Balls Jogadas:</label>
-        <input type="number" id="calcCount" placeholder="Ex: 314" value="314" oninput="calculateAll()">
-      </div>
-
-      <div class="input-group">
-        <label>Bônus Ativos (!buffs):</label>
-        <div class="checkbox-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="buffDouble" onchange="calculateAll()"> Double Catch Event (2x)
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="buffCharm" onchange="calculateAll()"> Catch Charm (+25%)
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="buffClan" onchange="calculateAll()"> Bônus Clan/Guild (+10%)
-          </label>
+  <!-- ABA 1: CATCH & HISTÓRICO -->
+  <div id="tabCatch" class="tab-content active">
+    <div class="card">
+      <h2 class="card-title">Simulador Avançado de Catch & Mercado</h2>
+      <div class="calc-grid">
+        <div class="input-group">
+          <label for="calcTier">Tier do Pokémon:</label>
+          <select id="calcTier" onchange="calculateCatch()">
+            <option value="1280">T1 (Pity 1.280)</option>
+            <option value="3560" selected>SR (Pity 3.560)</option>
+            <option value="7120">UR (Pity 7.120)</option>
+            <option value="14240">Mythic (Pity 14.240)</option>
+            <option value="28480">Legendary (Pity 28.480)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="calcBall">Tipo de Pokébola:</label>
+          <select id="calcBall" onchange="calculateCatch()">
+            <option value="5" selected>Alliance Ball (5x)</option>
+            <option value="4">Premier Ball (4x)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="calcCount">Balls Jogadas:</label>
+          <input type="number" id="calcCount" value="314" oninput="calculateCatch()">
+        </div>
+        <div class="input-group">
+          <label>Bônus Ativos (!buffs):</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="buffDouble" onchange="calculateCatch()"> Double Catch (2x)</label>
+            <label class="checkbox-label"><input type="checkbox" id="buffCharm" onchange="calculateCatch()"> Catch Charm (+25%)</label>
+            <label class="checkbox-label"><input type="checkbox" id="buffClan" onchange="calculateCatch()"> Bônus Clan/Guild (+10%)</label>
+          </div>
         </div>
       </div>
+
+      <div class="calc-grid" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+        <div class="input-group">
+          <label for="ballPrice">Preço Unitário da Ball ($):</label>
+          <input type="number" id="ballPrice" value="500" oninput="calculateCatch()">
+        </div>
+        <div class="input-group">
+          <label for="marketPrice">Preço no Market ($):</label>
+          <input type="number" id="marketPrice" value="350000" oninput="calculateCatch()">
+        </div>
+      </div>
+
+      <div class="result-box">
+        <span style="font-size: 14px; color: #8b949e;">Probabilidade Acumulada de Sucesso:</span>
+        <div class="result-value" id="resultPercent">0.00%</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+        <p id="resultStatus" style="font-size: 13px; color: #8b949e; margin-top: 10px; margin-bottom: 0;"></p>
+      </div>
+
+      <div class="eco-box" id="ecoResult"></div>
     </div>
 
-    <!-- COMPARADOR DE MERCADO -->
-    <div class="calc-grid" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-      <div class="input-group">
-        <label for="ballPrice">Preço Unitário da Ball ($):</label>
-        <input type="number" id="ballPrice" placeholder="Ex: 500" value="500" oninput="calculateAll()">
+    <!-- HISTÓRICO -->
+    <div class="card">
+      <h2 class="card-title">Registrar Hunt no Histórico</h2>
+      <div class="calc-grid">
+        <div class="input-group"><label for="histPoke">Pokémon:</label><input type="text" id="histPoke" placeholder="Ex: Shiny Infernape"></div>
+        <div class="input-group"><label for="histBalls">Balls Gastas:</label><input type="number" id="histBalls" placeholder="Ex: 314"></div>
+        <div class="input-group">
+          <label for="histStatus">Resultado:</label>
+          <select id="histStatus">
+            <option value="Pego">Pego (Sucesso)</option>
+            <option value="Abandonado">Abandonado (Stop-Loss)</option>
+          </select>
+        </div>
       </div>
-      <div class="input-group">
-        <label for="marketPrice">Preço do Pokémon no Market ($):</label>
-        <input type="number" id="marketPrice" placeholder="Ex: 350000" value="350000" oninput="calculateAll()">
-      </div>
-    </div>
+      <button class="btn" onclick="addHistory()">Salvar no Historico</button>
 
-    <!-- PAINEL DE RESULTADOS -->
-    <div class="result-box">
-      <span style="font-size: 14px; color: #8b949e;">Probabilidade Acumulada de Sucesso:</span>
-      <div class="result-value" id="resultPercent">0.00%</div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressBar"></div>
-      </div>
-      <p id="resultStatus" style="font-size: 13px; color: #8b949e; margin-bottom: 0; margin-top: 10px;"></p>
-    </div>
-
-    <div class="eco-box" id="ecoResult">
-      <!-- Calculado via JS -->
+      <h3 style="color: var(--text-bright); margin-top: 24px;">Minhas Hunts Salvas</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Pokémon</th><th>Balls</th><th>Status</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
     </div>
   </div>
 
-  <!-- REGISTRO DE HISTÓRICO DE HUNTS (LOCAL STORAGE) -->
-  <div class="card">
-    <h2 class="card-title">Registrar Nova Hunt no Histórico</h2>
-    <div class="calc-grid">
-      <div class="input-group">
-        <label for="histPoke">Nome do Pokémon:</label>
-        <input type="text" id="histPoke" placeholder="Ex: Shiny Infernape">
+  <!-- ABA 2: LUCRO POR HUNT -->
+  <div id="tabLucro" class="tab-content">
+    <div class="card">
+      <h2 class="card-title">Calculadora de Profit / Lucro Liquido</h2>
+      <div class="calc-grid">
+        <div class="input-group"><label for="huntTime">Tempo de Hunt (Minutos):</label><input type="number" id="huntTime" value="60" oninput="calculateProfit()"></div>
+        <div class="input-group"><label for="rawCash">Pokédollars/HDs Diretos Dropados ($):</label><input type="number" id="rawCash" value="50000" oninput="calculateProfit()"></div>
+        <div class="input-group"><label for="lootValue">Valor de Loots / Essências ($):</label><input type="number" id="lootValue" value="120000" oninput="calculateProfit()"></div>
+        <div class="input-group"><label for="supplyCost">Custo de Potions/Revives/Balls ($):</label><input type="number" id="supplyCost" value="30000" oninput="calculateProfit()"></div>
       </div>
-      <div class="input-group">
-        <label for="histBalls">Balls Gastas:</label>
-        <input type="number" id="histBalls" placeholder="Ex: 314">
-      </div>
-      <div class="input-group">
-        <label for="histStatus">Resultado:</label>
-        <select id="histStatus">
-          <option value="Pego">Pego (Sucesso)</option>
-          <option value="Abandonado">Abandonado (Stop-Loss)</option>
-        </select>
+
+      <div class="result-box">
+        <span style="font-size: 14px; color: #8b949e;">Lucro Líquido Estimado por Hora:</span>
+        <div class="result-value" id="profitPerHour">$0 / h</div>
+        <p id="profitDetails" style="font-size: 13px; color: #8b949e; margin-top: 5px; margin-bottom: 0;"></p>
       </div>
     </div>
-    <button class="btn" onclick="addHistory()">Salvar Hunt</button>
-
-    <h3 style="color: var(--text-bright); margin-top: 24px;">Minhas Hunts Salvas</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Pokémon</th>
-          <th>Balls Gastas</th>
-          <th>Status</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody">
-        <!-- Renderizado via JS -->
-      </tbody>
-    </table>
   </div>
 
-  <!-- TABELA DE REFERÊNCIA -->
-  <h2>Tabela de Referência Rápida (Base Sem Buffs)</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Tier do Pokémon</th>
-        <th>Pity Máximo <span class="tag tag-ultra">Ultra</span></th>
-        <th>Média / Limite Ideal <span class="tag tag-premier">Premier 4x</span></th>
-        <th>Média / Limite Ideal <span class="tag tag-alliance">Alliance 5x</span></th>
-      </tr>
-    </thead>
-    <tbody id="tableBody">
-      <!-- Renderizado via JS -->
-    </tbody>
-  </table>
+  <!-- ABA 3: COUNTERS ELEMENTAIS -->
+  <div id="tabCounters" class="tab-content">
+    <div class="card">
+      <h2 class="card-title">Analisador de Fraquezas e Vantagens</h2>
+      <div class="calc-grid">
+        <div class="input-group">
+          <label for="type1">Tipo Primário do Alvo:</label>
+          <select id="type1" onchange="calculateElements()">
+            <option value="fire">Fogo (Fire)</option>
+            <option value="water">Água (Water)</option>
+            <option value="grass">Planta (Grass)</option>
+            <option value="electric">Elétrico (Electric)</option>
+            <option value="ice">Gelo (Ice)</option>
+            <option value="fighting">Lutador (Fighting)</option>
+            <option value="poison">Venenoso (Poison)</option>
+            <option value="ground">Terra (Ground)</option>
+            <option value="flying">Voador (Flying)</option>
+            <option value="psychic">Psíquico (Psychic)</option>
+            <option value="bug">Inseto (Bug)</option>
+            <option value="rock">Pedra (Rock)</option>
+            <option value="ghost">Fantasma (Ghost)</option>
+            <option value="dragon">Dragão (Dragon)</option>
+            <option value="dark">Sombrio (Dark)</option>
+            <option value="steel">Aço (Steel)</option>
+            <option value="fairy">Fada (Fairy)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="type2">Tipo Secundário (Opcional):</label>
+          <select id="type2" onchange="calculateElements()">
+            <option value="none" selected>Nenhum (Monotipo)</option>
+            <option value="fire">Fogo (Fire)</option>
+            <option value="water">Água (Water)</option>
+            <option value="grass">Planta (Grass)</option>
+            <option value="electric">Elétrico (Electric)</option>
+            <option value="ice">Gelo (Ice)</option>
+            <option value="fighting">Lutador (Fighting)</option>
+            <option value="poison">Venenoso (Poison)</option>
+            <option value="ground">Terra (Ground)</option>
+            <option value="flying">Voador (Flying)</option>
+            <option value="psychic">Psíquico (Psychic)</option>
+            <option value="bug">Inseto (Bug)</option>
+            <option value="rock">Pedra (Rock)</option>
+            <option value="ghost">Fantasma (Ghost)</option>
+            <option value="dragon">Dragão (Dragon)</option>
+            <option value="dark">Sombrio (Dark)</option>
+            <option value="steel">Aço (Steel)</option>
+            <option value="fairy">Fada (Fairy)</option>
+          </select>
+        </div>
+      </div>
 
-  <div class="card footer-note" style="margin-top: 24px;">
-    <strong>Regra de Parada (Stop-Loss):</strong>
-    <ul>
-      <li><strong>Média Esperada (~63% de chance):</strong> Ponto em que a maioria estatística dos jogadores realiza a captura.</li>
-      <li><strong>Limite Ideal de Desistência:</strong> Ponto equivalente a 50% do teto do Pity. Passar desse limite sem capturar indica entrada na margem de azar; a partir daí, vale mais a pena mudar para a Ultra Ball para pontuar no *pity system*.</li>
-    </ul>
+      <div class="eco-box" id="elementResults" style="border-left-color: var(--accent-alliance);"></div>
+    </div>
   </div>
+
+  <!-- ABA 4: SIMULADOR DE XP -->
+  <div id="tabXP" class="tab-content">
+    <div class="card">
+      <h2 class="card-title">Simulador de Tempo de Upar (XP)</h2>
+      <div class="calc-grid">
+        <div class="input-group"><label for="currentXP">XP Atual:</label><input type="number" id="currentXP" value="1000000" oninput="calculateXP()"></div>
+        <div class="input-group"><label for="targetXP">XP Meta (Próximo Level/Meta):</label><input type="number" id="targetXP" value="2500000" oninput="calculateXP()"></div>
+        <div class="input-group"><label for="xpHour">Sua Média de XP por Hora:</label><input type="number" id="xpHour" value="300000" oninput="calculateXP()"></div>
+      </div>
+
+      <div class="result-box">
+        <span style="font-size: 14px; color: #8b949e;">Tempo Estimado Necessário:</span>
+        <div class="result-value" id="xpTimeResult">0h 0m</div>
+        <p id="xpDetails" style="font-size: 13px; color: #8b949e; margin-top: 5px; margin-bottom: 0;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA 5: GERENCIADOR DE COOLDOWNS -->
+  <div id="tabCooldowns" class="tab-content">
+    <div class="card">
+      <h2 class="card-title">Novo Temporizador / Daily Quest</h2>
+      <div class="calc-grid">
+        <div class="input-group"><label for="cdName">Nome do Boss / Quest:</label><input type="text" id="cdName" placeholder="Ex: Boss Shiny Pachirisu"></div>
+        <div class="input-group"><label for="cdHours">Tempo de Cooldown (Horas):</label><input type="number" id="cdHours" value="24"></div>
+      </div>
+      <button class="btn btn-blue" onclick="addCooldown()">Iniciar Timer</button>
+
+      <h3 style="color: var(--text-bright); margin-top: 24px;">Timers Ativos</h3>
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>Tempo Restante</th><th>Status</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="cdBody"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
-  const presets = [
-    { name: "T1", pity: 1280 },
-    { name: "SR", pity: 3560 },
-    { name: "UR", pity: 7120 },
-    { name: "Mythic", pity: 14240 },
-    { name: "Legendary", pity: 28480 }
-  ];
-
-  function renderTable() {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-
-    presets.forEach(item => {
-      const ultraPity = item.pity;
-      const premierAvg = Math.round((ultraPity / 2) * (2 / 4));
-      const allianceAvg = Math.round((ultraPity / 2) * (2 / 5));
-
-      const premierLimit = Math.round(ultraPity * (2 / 4) * 0.5);
-      const allianceLimit = Math.round(ultraPity * (2 / 5) * 0.5);
-
-      const row = `
-        <tr>
-          <td><span class="highlight">${item.name}</span></td>
-          <td>${ultraPity.toLocaleString()} balls</td>
-          <td>${premierAvg.toLocaleString()} <small>(Limite: ${premierLimit.toLocaleString()})</small></td>
-          <td>${allianceAvg.toLocaleString()} <small>(Limite: ${allianceLimit.toLocaleString()})</small></td>
-        </tr>
-      `;
-      tbody.innerHTML += row;
-    });
+  // TROCA DE ABAS
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
   }
 
-  function calculateAll() {
+  // --- LOGICA 1: CATCH & HISTORICO ---
+  const presets = [
+    { name: "T1", pity: 1280 }, { name: "SR", pity: 3560 },
+    { name: "UR", pity: 7120 }, { name: "Mythic", pity: 14240 }, { name: "Legendary", pity: 28480 }
+  ];
+
+  function calculateCatch() {
     const ultraPity = parseFloat(document.getElementById("calcTier").value);
     const ballMult = parseFloat(document.getElementById("calcBall").value);
     const count = parseInt(document.getElementById("calcCount").value) || 0;
 
-    // Buffs
     let globalBuff = 1.0;
     if (document.getElementById("buffDouble").checked) globalBuff *= 2.0;
     if (document.getElementById("buffCharm").checked) globalBuff *= 1.25;
     if (document.getElementById("buffClan").checked) globalBuff *= 1.10;
 
-    // Calculo da chance por bola com buffs
     const baseChancePerBall = ((1 / (ultraPity / 2)) * (ballMult / 2)) * globalBuff;
-
-    // Bernoulli: 1 - (1 - p)^n
     let prob = 1 - Math.pow(1 - baseChancePerBall, count);
-    if (prob < 0) prob = 0;
-    if (prob > 1) prob = 1;
+    prob = Math.max(0, Math.min(1, prob));
 
     const percent = (prob * 100).toFixed(2);
     document.getElementById("resultPercent").innerText = percent + "%";
     document.getElementById("progressBar").style.width = Math.min(percent, 100) + "%";
 
-    // Limite ajustado pelos buffs
     const allianceLimit = Math.round((ultraPity * (2 / ballMult) * 0.5) / globalBuff);
     const remaining = allianceLimit - count;
     const statusEl = document.getElementById("resultStatus");
 
     if (remaining > 0) {
-      statusEl.innerHTML = `Com os buffs atuais, faltam <strong style="color: var(--text-bright);">${remaining}</strong> balls para atingir o limite seguro de parada (${allianceLimit} balls).`;
+      statusEl.innerHTML = `Faltam <strong style="color: var(--text-bright);">${remaining}</strong> balls para atingir o limite ideal (${allianceLimit} balls).`;
     } else {
-      statusEl.innerHTML = `<span style="color: var(--accent-premier);">Você ultrapassou o limite ideal ajustado (${allianceLimit} balls). Considere mudar para Ultra Ball.</span>`;
+      statusEl.innerHTML = `<span style="color: var(--accent-premier);">Você ultrapassou o limite ideal (${allianceLimit} balls). Considere mudar para Ultra Ball.</span>`;
     }
 
-    // Análise Econômica
     const ballPrice = parseFloat(document.getElementById("ballPrice").value) || 0;
     const marketPrice = parseFloat(document.getElementById("marketPrice").value) || 0;
     const currentInvestment = count * ballPrice;
     const limitInvestment = allianceLimit * ballPrice;
 
-    const ecoEl = document.getElementById("ecoResult");
-    let ecoText = `<strong>Análise Financeira:</strong> Você já gastou <strong>$${currentInvestment.toLocaleString()}</strong> nesta hunt. O investimento máximo até o limite estipulado é <strong>$${limitInvestment.toLocaleString()}</strong>.`;
-
+    let ecoText = `<strong>Análise Financeira:</strong> Gasto atual: <strong>$${currentInvestment.toLocaleString()}</strong>. Custo até o limite: <strong>$${limitInvestment.toLocaleString()}</strong>.`;
     if (marketPrice > 0) {
       if (limitInvestment > marketPrice) {
-        ecoText += `<br><span style="color: var(--accent-premier);">⚠️ <strong>Alerta:</strong> O custo de tentar o catch até o limite ($${limitInvestment.toLocaleString()}) é superior ao valor do Pokémon no Market ($${marketPrice.toLocaleString()}). Comprar pode ser mais vantajoso.</span>`;
+        ecoText += `<br><span style="color: var(--accent-premier);">⚠️ Custo da hunt ($${limitInvestment.toLocaleString()}) supera o preço de mercado ($${marketPrice.toLocaleString()}).</span>`;
       } else {
-        ecoText += `<br><span style="color: var(--accent-green);">✔️ <strong>Vantajoso:</strong> O teto da sua hunt ($${limitInvestment.toLocaleString()}) está abaixo do preço praticado no Market ($${marketPrice.toLocaleString()}).</span>`;
+        ecoText += `<br><span style="color: var(--accent-green);">✔️ Hunt vantajosa em relação ao Market ($${marketPrice.toLocaleString()}).</span>`;
       }
     }
-    ecoEl.innerHTML = ecoText;
+    document.getElementById("ecoResult").innerHTML = ecoText;
   }
 
-  // GERENCIADOR DE HISTÓRICO (LOCALSTORAGE)
-  function getHistory() {
-    return JSON.parse(localStorage.getItem("pka_hunts") || "[]");
-  }
-
+  function getHistory() { return JSON.parse(localStorage.getItem("pka_hunts") || "[]"); }
   function addHistory() {
     const poke = document.getElementById("histPoke").value.trim();
     const balls = parseInt(document.getElementById("histBalls").value);
     const status = document.getElementById("histStatus").value;
-
-    if (!poke || !balls) return alert("Preencha o nome do Pokémon e a quantidade de balls.");
-
-    const history = getHistory();
-    history.push({
-      date: new Date().toLocaleDateString('pt-BR'),
-      poke,
-      balls,
-      status
-    });
-
-    localStorage.setItem("pka_hunts", JSON.stringify(history));
+    if (!poke || !balls) return alert("Preencha todos os campos do histórico.");
+    
+    const h = getHistory();
+    h.push({ date: new Date().toLocaleDateString('pt-BR'), poke, balls, status });
+    localStorage.setItem("pka_hunts", JSON.stringify(h));
     document.getElementById("histPoke").value = "";
     document.getElementById("histBalls").value = "";
     renderHistory();
   }
-
-  function removeHistory(index) {
-    const history = getHistory();
-    history.splice(index, 1);
-    localStorage.setItem("pka_hunts", JSON.stringify(history));
+  function removeHistory(i) {
+    const h = getHistory(); h.splice(i, 1);
+    localStorage.setItem("pka_hunts", JSON.stringify(h));
     renderHistory();
   }
-
   function renderHistory() {
-    const history = getHistory();
+    const h = getHistory();
     const tbody = document.getElementById("historyBody");
-    tbody.innerHTML = "";
-
-    if (history.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#8b949e;">Nenhuma hunt salva ainda.</td></tr>`;
-      return;
-    }
-
-    history.forEach((item, index) => {
-      const statusColor = item.status === "Pego" ? "var(--accent-green)" : "var(--accent-premier)";
-      const row = `
-        <tr>
-          <td>${item.date}</td>
-          <td><span class="highlight">${item.poke}</span></td>
-          <td>${item.balls.toLocaleString()}</td>
-          <td><strong style="color: ${statusColor};">${item.status}</strong></td>
-          <td><button class="btn btn-danger" onclick="removeHistory(${index})" style="padding: 4px 8px; font-size: 12px;">X</button></td>
-        </tr>
-      `;
-      tbody.innerHTML += row;
+    tbody.innerHTML = h.length === 0 ? `<tr><td colspan="5" style="text-align:center; color:#8b949e;">Nenhuma hunt registrada.</td></tr>` : "";
+    h.forEach((item, index) => {
+      const color = item.status === "Pego" ? "var(--accent-green)" : "var(--accent-premier)";
+      tbody.innerHTML += `<tr><td>${item.date}</td><td><span class="highlight">${item.poke}</span></td><td>${item.balls.toLocaleString()}</td><td><strong style="color: ${color};">${item.status}</strong></td><td><button class="btn btn-danger" onclick="removeHistory(${index})" style="padding:4px 8px; font-size:12px;">X</button></td></tr>`;
     });
   }
 
-  renderTable();
-  calculateAll();
+  // --- LOGICA 2: LUCRO POR HUNT ---
+  function calculateProfit() {
+    const minutes = parseFloat(document.getElementById("huntTime").value) || 1;
+    const raw = parseFloat(document.getElementById("rawCash").value) || 0;
+    const loot = parseFloat(document.getElementById("lootValue").value) || 0;
+    const supply = parseFloat(document.getElementById("supplyCost").value) || 0;
+
+    const netProfit = (raw + loot) - supply;
+    const profitPerHour = Math.round((netProfit / minutes) * 60);
+
+    const el = document.getElementById("profitPerHour");
+    el.innerText = `$${profitPerHour.toLocaleString()} / h`;
+    el.style.color = profitPerHour >= 0 ? "var(--accent-green)" : "var(--accent-premier)";
+
+    document.getElementById("profitDetails").innerText = `Lucro Líquido Total no Período: $${netProfit.toLocaleString()} em ${minutes} minutos.`;
+  }
+
+  // --- LOGICA 3: COUNTERS ELEMENTAIS ---
+  const typeChart = {
+    fire: { weak: ['water', 'ground', 'rock'], res: ['fire', 'grass', 'ice', 'bug', 'steel', 'fairy'] },
+    water: { weak: ['electric', 'grass'], res: ['fire', 'water', 'ice', 'steel'] },
+    grass: { weak: ['fire', 'ice', 'poison', 'flying', 'bug'], res: ['water', 'grass', 'electric', 'ground'] },
+    electric: { weak: ['ground'], res: ['electric', 'flying', 'steel'] },
+    ice: { weak: ['fire', 'fighting', 'rock', 'steel'], res: ['ice'] },
+    fighting: { weak: ['flying', 'psychic', 'fairy'], res: ['bug', 'rock', 'dark'] },
+    poison: { weak: ['ground', 'psychic'], res: ['grass', 'fighting', 'poison', 'bug', 'fairy'] },
+    ground: { weak: ['water', 'grass', 'ice'], res: ['poison', 'rock'], imm: ['electric'] },
+    flying: { weak: ['electric', 'ice', 'rock'], res: ['grass', 'fighting', 'bug'], imm: ['ground'] },
+    psychic: { weak: ['bug', 'ghost', 'dark'], res: ['fighting', 'psychic'] },
+    bug: { weak: ['fire', 'flying', 'rock'], res: ['grass', 'fighting', 'ground'] },
+    rock: { weak: ['water', 'grass', 'fighting', 'ground', 'steel'], res: ['normal', 'fire', 'poison', 'flying'] },
+    ghost: { weak: ['ghost', 'dark'], res: ['poison', 'bug'], imm: ['normal', 'fighting'] },
+    dragon: { weak: ['ice', 'dragon', 'fairy'], res: ['fire', 'water', 'grass', 'electric'] },
+    dark: { weak: ['fighting', 'bug', 'fairy'], res: ['ghost', 'dark'], imm: ['psychic'] },
+    steel: { weak: ['fire', 'fighting', 'ground'], res: ['normal', 'grass', 'ice', 'flying', 'psychic', 'bug', 'rock', 'dragon', 'steel', 'fairy'], imm: ['poison'] },
+    fairy: { weak: ['poison', 'steel'], res: ['fighting', 'bug', 'dark'], imm: ['dragon'] }
+  };
+
+  function calculateElements() {
+    const t1 = document.getElementById("type1").value;
+    const t2 = document.getElementById("type2").value;
+
+    const allTypes = Object.keys(typeChart);
+    let multipliers = {};
+    allTypes.forEach(t => multipliers[t] = 1.0);
+
+    // Aplica multiplicadores tipo 1
+    allTypes.forEach(t => {
+      if (typeChart[t1].weak.includes(t)) multipliers[t] *= 2.0;
+      if (typeChart[t1].res.includes(t)) multipliers[t] *= 0.5;
+      if (typeChart[t1].imm && typeChart[t1].imm.includes(t)) multipliers[t] *= 0.0;
+    });
+
+    // Aplica multiplicadores tipo 2 se existir
+    if (t2 !== 'none' && t2 !== t1) {
+      allTypes.forEach(t => {
+        if (typeChart[t2].weak.includes(t)) multipliers[t] *= 2.0;
+        if (typeChart[t2].res.includes(t)) multipliers[t] *= 0.5;
+        if (typeChart[t2].imm && typeChart[t2].imm.includes(t)) multipliers[t] *= 0.0;
+      });
+    }
+
+    let superWeak = [], weak = [], res = [], immune = [];
+    allTypes.forEach(t => {
+      if (multipliers[t] === 4.0) superWeak.push(t);
+      else if (multipliers[t] === 2.0) weak.push(t);
+      else if (multipliers[t] < 1.0 && multipliers[t] > 0) res.push(t);
+      else if (multipliers[t] === 0) immune.push(t);
+    });
+
+    let html = `<strong>Fraquezas Extremas (4x):</strong> ${superWeak.length ? superWeak.map(t => `<span class="type-badge" style="background:#dc2626;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}<br><br>`;
+    html += `<strong>Fraquezas (2x):</strong> ${weak.length ? weak.map(t => `<span class="type-badge" style="background:#d97706;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}<br><br>`;
+    html += `<strong>Resistências:</strong> ${res.length ? res.map(t => `<span class="type-badge" style="background:#2563eb;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}<br><br>`;
+    html += `<strong>Imunidades (0x):</strong> ${immune.length ? immune.map(t => `<span class="type-badge" style="background:#4b5563;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}`;
+
+    document.getElementById("elementResults").innerHTML = html;
+  }
+
+  // --- LOGICA 4: SIMULADOR DE XP ---
+  function calculateXP() {
+    const cur = parseFloat(document.getElementById("currentXP").value) || 0;
+    const target = parseFloat(document.getElementById("targetXP").value) || 0;
+    const xpH = parseFloat(document.getElementById("xpHour").value) || 1;
+
+    const remaining = target - cur;
+    if (remaining <= 0) {
+      document.getElementById("xpTimeResult").innerText = "Meta Atingida!";
+      document.getElementById("xpDetails").innerText = "Sua XP atual já é maior ou igual à meta.";
+      return;
+    }
+
+    const hoursTotal = remaining / xpH;
+    const h = Math.floor(hoursTotal);
+    const m = Math.round((hoursTotal - h) * 60);
+
+    document.getElementById("xpTimeResult").innerText = `${h}h ${m}m`;
+    document.getElementById("xpDetails").innerText = `Faltam ${remaining.toLocaleString()} XP para a meta a uma taxa de ${xpH.toLocaleString()} XP/h.`;
+  }
+
+  // --- LOGICA 5: GERENCIADOR DE COOLDOWNS ---
+  function getCDs() { return JSON.parse(localStorage.getItem("pka_cds") || "[]"); }
+  function addCooldown() {
+    const name = document.getElementById("cdName").value.trim();
+    const hours = parseFloat(document.getElementById("cdHours").value);
+    if (!name || !hours) return alert("Preencha o nome e o tempo do cooldown.");
+
+    const cds = getCDs();
+    const endTime = Date.now() + (hours * 3600 * 1000);
+    cds.push({ name, endTime });
+    localStorage.setItem("pka_cds", JSON.stringify(cds));
+    document.getElementById("cdName").value = "";
+    renderCDs();
+  }
+  function removeCD(i) {
+    const cds = getCDs(); cds.splice(i, 1);
+    localStorage.setItem("pka_cds", JSON.stringify(cds));
+    renderCDs();
+  }
+  function renderCDs() {
+    const cds = getCDs();
+    const tbody = document.getElementById("cdBody");
+    tbody.innerHTML = cds.length === 0 ? `<tr><td colspan="4" style="text-align:center; color:#8b949e;">Nenhum timer ativo.</td></tr>` : "";
+
+    const now = Date.now();
+    cds.forEach((item, index) => {
+      const diff = item.endTime - now;
+      let statusText = "", color = "var(--accent-green)";
+      if (diff <= 0) {
+        statusText = "PRONTO / DISPONÍVEL!";
+        color = "var(--accent-green)";
+      } else {
+        const h = Math.floor(diff / (3600 * 1000));
+        const m = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
+        const s = Math.floor((diff % (60 * 1000)) / 1000);
+        statusText = `${h}h ${m}m ${s}s`;
+        color = "var(--accent-premier)";
+      }
+      tbody.innerHTML += `<tr><td><span class="highlight">${item.name}</span></td><td style="color:${color}; font-weight:bold;">${statusText}</td><td>${diff <= 0 ? 'Disponível' : 'Em Cooldown'}</td><td><button class="btn btn-danger" onclick="removeCD(${index})" style="padding:4px 8px; font-size:12px;">X</button></td></tr>`;
+    });
+  }
+
+  // Atualiza timers a cada segundo
+  setInterval(renderCDs, 1000);
+
+  // Inicializações
+  calculateCatch();
   renderHistory();
+  calculateProfit();
+  calculateElements();
+  calculateXP();
+  renderCDs();
 </script>
 
 </body>
