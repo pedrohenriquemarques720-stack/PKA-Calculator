@@ -3,714 +3,981 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PKA Ultimate Hub - Painel Completo de Suporte</title>
+  <title>PKA - Calculadora de Custo & Tempo de Farm</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0d1117;
-      --card-bg: #161b22;
-      --border-color: #30363d;
-      --text-main: #c9d1d9;
-      --text-bright: #ffffff;
-      --accent-premier: #e55353;
-      --accent-alliance: #339af0;
-      --accent-ultra: #fcc419;
-      --accent-green: #2ea043;
-      --accent-purple: #a371f7;
+      --bg-dark: #060911;
+      --card-bg: #0d121f;
+      --card-border: #1a2338;
+      --accent-blue: #2563eb;
+      --accent-cyan: #06b6d4;
+      --accent-gold: #f59e0b;
+      --accent-green: #10b981;
+      --leaf-green: #22c55e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
     }
 
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
+      background-color: var(--bg-dark);
       color: var(--text-main);
-      margin: 0;
       padding: 20px;
-      display: flex;
-      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Partículas de Folhas de Planta no Fundo */
+    #leafCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
     }
 
     .container {
-      max-width: 1050px;
-      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Abas do Topo */
+    .nav-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+    }
+
+    .nav-tab-btn {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-tab-btn:hover {
+      border-color: var(--leaf-green);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .nav-tab-btn.active {
+      background: linear-gradient(135deg, #15803d, #16a34a);
+      color: #fff;
+      border-color: var(--leaf-green);
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Header Calculadora */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
     h1 {
-      color: var(--text-bright);
-      text-align: center;
-      margin-bottom: 4px;
-    }
-
-    p.subtitle {
-      text-align: center;
-      color: #8b949e;
-      margin-top: 0;
-      margin-bottom: 20px;
-    }
-
-    /* SISTEMA DE ABAS */
-    .tabs {
-      display: flex;
-      gap: 8px;
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 20px;
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      background-color: var(--card-bg);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      border-bottom: none;
-      padding: 10px 18px;
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      white-space: nowrap;
-    }
-
-    .tab-btn.active {
-      background-color: var(--accent-alliance);
-      color: #fff;
-      border-color: var(--accent-alliance);
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-
-    .card-title {
-      margin-top: 0;
-      color: var(--text-bright);
-      font-size: 18px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 10px;
-      margin-bottom: 16px;
-    }
-
-    .calc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    label {
-      font-weight: 600;
-      color: var(--text-bright);
-      font-size: 14px;
-    }
-
-    input[type="number"], input[type="text"], select {
-      background-color: var(--bg-color);
-      border: 1px solid var(--border-color);
-      color: var(--text-bright);
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-size: 15px;
-      outline: none;
-    }
-
-    input[type="number"]:focus, input[type="text"]:focus, select:focus {
-      border-color: var(--accent-alliance);
-    }
-
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .checkbox-label {
-      font-weight: normal;
-      font-size: 13px;
-      cursor: pointer;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #38bdf8;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .result-box {
-      background-color: #21262d;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 16px;
-      text-align: center;
+    .controls-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
-    .result-value {
-      font-size: 32px;
-      font-weight: bold;
-      color: var(--accent-green);
-      margin: 8px 0;
-    }
-
-    .progress-bar-bg {
-      background-color: var(--bg-color);
-      border-radius: 10px;
-      height: 12px;
-      width: 100%;
-      overflow: hidden;
-      margin-top: 10px;
-      border: 1px solid var(--border-color);
-    }
-
-    .progress-bar-fill {
-      background-color: var(--accent-green);
-      height: 100%;
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .eco-box {
-      margin-top: 15px;
-      padding: 12px;
-      background-color: var(--bg-color);
-      border-radius: 6px;
-      border-left: 4px solid var(--accent-purple);
-      font-size: 14px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
+    .input-box-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0c101d;
+      padding: 6px 12px;
       border-radius: 8px;
-      overflow: hidden;
+      border: 1px solid var(--card-border);
+      font-size: 0.85rem;
+      color: #cbd5e1;
     }
 
-    th, td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
+    .input-box-mini input {
+      width: 50px;
+      background: #050811;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 4px 6px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 700;
     }
 
-    th {
-      background-color: #21262d;
-      color: var(--text-bright);
+    .phase-selector {
+      display: flex;
+      background: #0c101d;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      gap: 4px;
+    }
+
+    .phase-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 16px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s ease;
+    }
+
+    .phase-btn:hover { color: #fff; }
+
+    .phase-btn.active {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+
+    /* Summary Grid */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+      border-color: var(--leaf-green);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(34, 197, 94, 0.15);
+    }
+
+    .summary-card.highlight {
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .summary-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .summary-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .summary-sub {
+      font-size: 0.73rem;
+      color: var(--accent-green);
+    }
+
+    /* Planejamento de Catch Panel */
+    .phase-compare-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .phase-compare-panel h2 {
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .compare-card {
+      background: #080c16;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: border-color 0.2s ease;
+    }
+
+    .compare-card:hover {
+      border-color: rgba(34, 197, 94, 0.4);
+    }
+
+    .compare-card h3 {
+      font-size: 0.92rem;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.05);
+    }
+
+    .stat-row span { color: var(--text-muted); }
+    .stat-row strong { color: #fff; }
+
+    .btn-apply-phase {
+      width: 100%;
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      margin-top: 14px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-apply-phase:hover {
+      background: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Cards de Pokémons */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 18px;
+    }
+
+    .poke-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      position: relative;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .poke-card:hover {
+      transform: translateY(-8px) scale(1.015);
+      border-color: var(--leaf-green);
+      box-shadow: 0 12px 30px rgba(34, 197, 94, 0.25), 0 0 15px rgba(34, 197, 94, 0.15);
+    }
+
+    .poke-card:hover .poke-img {
+      transform: scale(1.18) rotate(4deg);
+      filter: drop-shadow(0 6px 12px rgba(34, 197, 94, 0.4));
+    }
+
+    .poke-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .poke-info-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sprite-stage {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .poke-img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      transition: transform 0.35s ease, filter 0.35s ease;
+    }
+
+    .poke-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .poke-role { font-size: 0.75rem; color: var(--accent-gold); font-weight: 600; }
+
+    .tier-badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border: 1px solid;
+    }
+
+    .tier-T1 { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
+    .tier-T2 { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border-color: rgba(6, 182, 212, 0.4); }
+    .tier-T3 { background: rgba(139, 92, 246, 0.15); color: #c084fc; border-color: rgba(139, 92, 246, 0.4); }
+    .tier-SR { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+
+    .card-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .input-group { display: flex; flex-direction: column; gap: 4px; }
+    .input-group label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    .input-group input, .input-group select {
+      background: #060911;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
     }
 
-    tr:last-child td { border-bottom: none; }
+    .star-cost-badge {
+      grid-column: span 2;
+      background: #060911;
+      border: 1px solid rgba(255,255,255,0.03);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
 
-    .btn {
-      background-color: var(--accent-green);
+    .star-cost-badge span { color: #fff; font-weight: 700; }
+
+    .notes-area {
+      width: 100%;
+      background: #060911;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.75rem;
+      margin-top: 10px;
+      resize: vertical;
+    }
+
+    /* ABA ANALISADOR DE LOOT DE HUNT */
+    .loot-header { margin-bottom: 20px; }
+    .loot-title { font-size: 1.5rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .loot-sub { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+    .loot-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .loot-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .loot-box-title { font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+    .btn-example {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-example:hover { background: #334155; color: #fff; }
+
+    .json-textarea {
+      width: 100%;
+      height: 160px;
+      background: #060911;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 0.82rem;
+      resize: vertical;
+      margin-bottom: 16px;
+    }
+
+    .btn-analyze {
+      background: var(--accent-blue);
       color: #fff;
       border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      font-weight: bold;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
       cursor: pointer;
-      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
     }
 
-    .btn:hover { opacity: 0.9; }
-    .btn-danger { background-color: var(--accent-premier); }
-    .btn-blue { background-color: var(--accent-alliance); }
+    .btn-analyze:hover { background: #1d4ed8; }
 
-    .tag {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-      color: #fff;
+    .loot-results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
     }
 
-    .tag-ultra { background-color: #d97706; }
-    .tag-premier { background-color: #dc2626; }
-    .tag-alliance { background-color: #2563eb; }
-
-    .type-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-weight: bold;
-      font-size: 12px;
-      margin: 2px;
-      color: #fff;
+    .loot-column {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
     }
 
-    .footer-note {
-      font-size: 13px;
-      color: #8b949e;
-      line-height: 1.5;
+    .loot-column-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--card-border);
     }
+
+    .loot-column-title.talentos { color: #c084fc; }
+    .loot-column-title.market { color: #facc15; }
+    .loot-column-title.npc { color: #4ade80; }
+
+    .loot-item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .loot-item-card {
+      background: #060911;
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .loot-item-card:hover { border-color: rgba(34, 197, 94, 0.3); }
+    .loot-item-name { font-weight: 600; color: #f3f4f6; }
+    .loot-item-qty { color: var(--accent-cyan); font-weight: 700; }
+    .loot-item-price { color: var(--accent-green); font-weight: 700; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>PKA Ultimate Hub</h1>
-  <p class="subtitle">Calculadora de Catch, Lucro por Hunt, Counters Elementais, XP e Cooldowns</p>
+  <!-- Canvas de Partículas (Folhas Caindo) -->
+  <canvas id="leafCanvas"></canvas>
 
-  <!-- SELETOR DE ABAS -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('tabCatch')">Calculadora de Catch</button>
-    <button class="tab-btn" onclick="switchTab('tabLucro')">Lucro por Hunt</button>
-    <button class="tab-btn" onclick="switchTab('tabCounters')">Calculadora de Elements</button>
-    <button class="tab-btn" onclick="switchTab('tabXP')">Simulador de Level / XP</button>
-    <button class="tab-btn" onclick="switchTab('tabCooldowns')">Gerenciador de Cooldowns</button>
-  </div>
+  <div class="container">
+    <!-- Abas Principais -->
+    <div class="nav-tabs">
+      <button class="nav-tab-btn active" onclick="switchTab('teamTab', this)">
+        <span>🌱</span> Calculadora de Team
+      </button>
+      <button class="nav-tab-btn" onclick="switchTab('lootTab', this)">
+        <span>🎒</span> Analisador de Bag & Loot
+      </button>
+    </div>
 
-  <!-- ABA 1: CATCH & HISTÓRICO -->
-  <div id="tabCatch" class="tab-content active">
-    <div class="card">
-      <h2 class="card-title">Simulador Avançado de Catch & Mercado</h2>
-      <div class="calc-grid">
-        <div class="input-group">
-          <label for="calcTier">Tier do Pokémon:</label>
-          <select id="calcTier" onchange="calculateCatch()">
-            <option value="1280">T1 (Pity 1.280)</option>
-            <option value="3560" selected>SR (Pity 3.560)</option>
-            <option value="7120">UR (Pity 7.120)</option>
-            <option value="14240">Mythic (Pity 14.240)</option>
-            <option value="28480">Legendary (Pity 28.480)</option>
-          </select>
+    <!-- ABA 1: CALCULADORA DE TEAM -->
+    <div id="teamTab" class="tab-content active">
+      <header>
+        <h1>🌱 PKA - Calculador de Custo & Tempo de Farm</h1>
+        <div class="controls-bar">
+          <div class="input-box-mini">
+            <span>Preço DD:</span>
+            <input type="number" id="ddPriceInput" value="0.5" step="0.05" oninput="calculateAll()">
+            <span>KKs</span>
+          </div>
+          <div class="input-box-mini">
+            <span>Shinys/Hora:</span>
+            <input type="number" id="shinysPerHourInput" value="40" step="5" oninput="calculateAll()">
+          </div>
+          <div class="phase-selector">
+            <button class="phase-btn" id="btn-phase1" onclick="loadPresetPhase(1)">Fase 1 (Atual)</button>
+            <button class="phase-btn" id="btn-phase2" onclick="loadPresetPhase(2)">Fase 2 (Mid Game)</button>
+            <button class="phase-btn active" id="btn-phase3" onclick="loadPresetPhase(3)">Fase 3 (Dream Team)</button>
+          </div>
         </div>
-        <div class="input-group">
-          <label for="calcBall">Tipo de Pokébola:</label>
-          <select id="calcBall" onchange="calculateCatch()">
-            <option value="5" selected>Alliance Ball (5x)</option>
-            <option value="4">Premier Ball (4x)</option>
-          </select>
+      </header>
+
+      <!-- Resumo de Indicadores -->
+      <div class="summary-grid">
+        <div class="summary-card highlight">
+          <span class="summary-label">Custo Total do Time</span>
+          <span class="summary-val" id="totalTeamCost">0.0 KK</span>
+          <span class="summary-sub">Base + Taxas + DD Convertidos</span>
         </div>
-        <div class="input-group">
-          <label for="calcCount">Balls Jogadas:</label>
-          <input type="number" id="calcCount" value="314" oninput="calculateCatch()">
+        <div class="summary-card">
+          <span class="summary-label">Broke Máxima (Balls)</span>
+          <span class="summary-val" id="totalMaxBalls">12.120 Balls</span>
+          <span class="summary-sub" id="ballsBreakdownSub">6 Pokés totais a pegar (c/ food)</span>
         </div>
-        <div class="input-group">
-          <label>Bônus Ativos (!buffs):</label>
-          <div class="checkbox-group">
-            <label class="checkbox-label"><input type="checkbox" id="buffDouble" onchange="calculateCatch()"> Double Catch (2x)</label>
-            <label class="checkbox-label"><input type="checkbox" id="buffCharm" onchange="calculateCatch()"> Catch Charm (+25%)</label>
-            <label class="checkbox-label"><input type="checkbox" id="buffClan" onchange="calculateCatch()"> Bônus Clan/Guild (+10%)</label>
+        <div class="summary-card">
+          <span class="summary-label">Tempo Máximo de Catch</span>
+          <span class="summary-val" id="totalHoursNeeded">303h Farm</span>
+          <span class="summary-sub" id="daysNeededSub">~12.6 Dias full farm (a 40/h)</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Diamonds / Dust (DD)</span>
+          <span class="summary-val" id="totalDD">0 DD</span>
+          <span class="summary-sub" id="ddCostSub">~0.0 KKs em DDs</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Pokémons Food (Burn)</span>
+          <span class="summary-val" id="totalFoods">0 Pokés</span>
+          <span class="summary-sub">Necessários para Estrelas</span>
+        </div>
+      </div>
+
+      <!-- Painel Comparativo de Fases -->
+      <div class="phase-compare-panel">
+        <h2>📊 Planejamento de Catch & Tempo de Farm por Fase (Broke Máxima)</h2>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>Fase 1 (Inicial)</h3>
+            <div class="stat-row"><span>Estrutura:</span><strong>2x T1 | 2x T2 (2★) | 2x T3 (3★)</strong></div>
+            <div class="stat-row"><span>Pokés Totais (c/ Food):</span><strong>26 Pokés</strong></div>
+            <div class="stat-row"><span>Broke Máxima:</span><strong style="color:var(--accent-cyan)">20.960 Balls</strong></div>
+            <div class="stat-row"><span>Tempo (40/h):</span><strong style="color:var(--accent-gold)">524h Farm (~21.8d)</strong></div>
+            <button class="btn-apply-phase" onclick="loadPresetPhase(1)">Carregar Fase 1</button>
+          </div>
+
+          <div class="compare-card">
+            <h3>Fase 2 (Mid Game)</h3>
+            <div class="stat-row"><span>Estrutura:</span><strong>4x T1 | 2x T2 (2★)</strong></div>
+            <div class="stat-row"><span>Pokés Totais (c/ Food):</span><strong>12 Pokés</strong></div>
+            <div class="stat-row"><span>Broke Máxima:</span><strong style="color:var(--accent-cyan)">12.320 Balls</strong></div>
+            <div class="stat-row"><span>Tempo (40/h):</span><strong style="color:var(--accent-gold)">308h Farm (~12.8d)</strong></div>
+            <button class="btn-apply-phase" onclick="loadPresetPhase(2)">Carregar Fase 2</button>
+          </div>
+
+          <div class="compare-card">
+            <h3>Fase 3 (Dream Team)</h3>
+            <div class="stat-row"><span>Estrutura:</span><strong>4x T1 | 2x SR</strong></div>
+            <div class="stat-row"><span>Pokés Totais (c/ Food):</span><strong>6 Pokés</strong></div>
+            <div class="stat-row"><span>Broke Máxima:</span><strong style="color:var(--accent-cyan)">12.120 Balls</strong></div>
+            <div class="stat-row"><span>Tempo (40/h):</span><strong style="color:var(--accent-gold)">303h Farm (~12.6d)</strong></div>
+            <button class="btn-apply-phase" onclick="loadPresetPhase(3)">Carregar Fase 3</button>
           </div>
         </div>
       </div>
 
-      <div class="calc-grid" style="border-top: 1px solid var(--border-color); padding-top: 15px;">
-        <div class="input-group">
-          <label for="ballPrice">Preço Unitário da Ball ($):</label>
-          <input type="number" id="ballPrice" value="500" oninput="calculateCatch()">
-        </div>
-        <div class="input-group">
-          <label for="marketPrice">Preço no Market ($):</label>
-          <input type="number" id="marketPrice" value="350000" oninput="calculateCatch()">
-        </div>
-      </div>
-
-      <div class="result-box">
-        <span style="font-size: 14px; color: #8b949e;">Probabilidade Acumulada de Sucesso:</span>
-        <div class="result-value" id="resultPercent">0.00%</div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
-        <p id="resultStatus" style="font-size: 13px; color: #8b949e; margin-top: 10px; margin-bottom: 0;"></p>
-      </div>
-
-      <div class="eco-box" id="ecoResult"></div>
+      <!-- Container Dinâmico dos Cards dos Pokémons -->
+      <div class="team-grid" id="teamContainer"></div>
     </div>
 
-    <!-- HISTÓRICO -->
-    <div class="card">
-      <h2 class="card-title">Registrar Hunt no Histórico</h2>
-      <div class="calc-grid">
-        <div class="input-group"><label for="histPoke">Pokémon:</label><input type="text" id="histPoke" placeholder="Ex: Shiny Infernape"></div>
-        <div class="input-group"><label for="histBalls">Balls Gastas:</label><input type="number" id="histBalls" placeholder="Ex: 314"></div>
-        <div class="input-group">
-          <label for="histStatus">Resultado:</label>
-          <select id="histStatus">
-            <option value="Pego">Pego (Sucesso)</option>
-            <option value="Abandonado">Abandonado (Stop-Loss)</option>
-          </select>
+    <!-- ABA 2: ANALISADOR DE LOOT DE HUNT -->
+    <div id="lootTab" class="tab-content">
+      <div class="loot-header">
+        <div class="loot-title">🎒 Analisador de Bag & Loot de Hunt</div>
+        <div class="loot-sub">Cole o JSON exportado do seu client/autoloot para conferir o que guardar para talentos, o que vender no Market e o que vender no NPC.</div>
+      </div>
+
+      <div class="loot-box">
+        <div class="loot-box-header">
+          <div class="loot-box-title">
+            <span>☁️</span> Cole o .json da sua Hunt / Autoloot:
+          </div>
+          <button class="btn-example" onclick="loadSampleLootJson()">📄 Carregar Exemplo de Teste</button>
         </div>
-      </div>
-      <button class="btn" onclick="addHistory()">Salvar no Historico</button>
-
-      <h3 style="color: var(--text-bright); margin-top: 24px;">Minhas Hunts Salvas</h3>
-      <table>
-        <thead>
-          <tr><th>Data</th><th>Pokémon</th><th>Balls</th><th>Status</th><th>Ação</th></tr>
-        </thead>
-        <tbody id="historyBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ABA 2: LUCRO POR HUNT -->
-  <div id="tabLucro" class="tab-content">
-    <div class="card">
-      <h2 class="card-title">Calculadora de Profit / Lucro Liquido</h2>
-      <div class="calc-grid">
-        <div class="input-group"><label for="huntTime">Tempo de Hunt (Minutos):</label><input type="number" id="huntTime" value="60" oninput="calculateProfit()"></div>
-        <div class="input-group"><label for="rawCash">Pokédollars/HDs Diretos Dropados ($):</label><input type="number" id="rawCash" value="50000" oninput="calculateProfit()"></div>
-        <div class="input-group"><label for="lootValue">Valor de Loots / Essências ($):</label><input type="number" id="lootValue" value="120000" oninput="calculateProfit()"></div>
-        <div class="input-group"><label for="supplyCost">Custo de Potions/Revives/Balls ($):</label><input type="number" id="supplyCost" value="30000" oninput="calculateProfit()"></div>
+        <textarea id="lootJsonInput" class="json-textarea" placeholder='Cole aqui o JSON gerado pelo seu tracker/autoloot (ex: { "damage": ..., "loot": { "items": [...] }, "summary": ... })'></textarea>
+        <button class="btn-analyze" onclick="analyzeLootJson()">🔍 Analisar Loot da Bag</button>
       </div>
 
-      <div class="result-box">
-        <span style="font-size: 14px; color: #8b949e;">Lucro Líquido Estimado por Hora:</span>
-        <div class="result-value" id="profitPerHour">$0 / h</div>
-        <p id="profitDetails" style="font-size: 13px; color: #8b949e; margin-top: 5px; margin-bottom: 0;"></p>
+      <!-- Resultados Categorizados -->
+      <div class="loot-results-grid" id="lootResultsArea" style="display: none;">
+        <div class="loot-column">
+          <div class="loot-column-title talentos">
+            <span>✨ Guardar para Talentos / Quests</span>
+            <span id="countTalentos">0 itens</span>
+          </div>
+          <div class="loot-item-list" id="listTalentos"></div>
+        </div>
+
+        <div class="loot-column">
+          <div class="loot-column-title market">
+            <span>💎 Vender no Market / Jogadores</span>
+            <span id="countMarket">0 itens</span>
+          </div>
+          <div class="loot-item-list" id="listMarket"></div>
+        </div>
+
+        <div class="loot-column">
+          <div class="loot-column-title npc">
+            <span>🪙 Vender no NPC (Trash Loot)</span>
+            <span id="countNpc">0 itens</span>
+          </div>
+          <div class="loot-item-list" id="listNpc"></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ABA 3: COUNTERS ELEMENTAIS -->
-  <div id="tabCounters" class="tab-content">
-    <div class="card">
-      <h2 class="card-title">Analisador de Fraquezas e Vantagens</h2>
-      <div class="calc-grid">
-        <div class="input-group">
-          <label for="type1">Tipo Primário do Alvo:</label>
-          <select id="type1" onchange="calculateElements()">
-            <option value="fire">Fogo (Fire)</option>
-            <option value="water">Água (Water)</option>
-            <option value="grass">Planta (Grass)</option>
-            <option value="electric">Elétrico (Electric)</option>
-            <option value="ice">Gelo (Ice)</option>
-            <option value="fighting">Lutador (Fighting)</option>
-            <option value="poison">Venenoso (Poison)</option>
-            <option value="ground">Terra (Ground)</option>
-            <option value="flying">Voador (Flying)</option>
-            <option value="psychic">Psíquico (Psychic)</option>
-            <option value="bug">Inseto (Bug)</option>
-            <option value="rock">Pedra (Rock)</option>
-            <option value="ghost">Fantasma (Ghost)</option>
-            <option value="dragon">Dragão (Dragon)</option>
-            <option value="dark">Sombrio (Dark)</option>
-            <option value="steel">Aço (Steel)</option>
-            <option value="fairy">Fada (Fairy)</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="type2">Tipo Secundário (Opcional):</label>
-          <select id="type2" onchange="calculateElements()">
-            <option value="none" selected>Nenhum (Monotipo)</option>
-            <option value="fire">Fogo (Fire)</option>
-            <option value="water">Água (Water)</option>
-            <option value="grass">Planta (Grass)</option>
-            <option value="electric">Elétrico (Electric)</option>
-            <option value="ice">Gelo (Ice)</option>
-            <option value="fighting">Lutador (Fighting)</option>
-            <option value="poison">Venenoso (Poison)</option>
-            <option value="ground">Terra (Ground)</option>
-            <option value="flying">Voador (Flying)</option>
-            <option value="psychic">Psíquico (Psychic)</option>
-            <option value="bug">Inseto (Bug)</option>
-            <option value="rock">Pedra (Rock)</option>
-            <option value="ghost">Fantasma (Ghost)</option>
-            <option value="dragon">Dragão (Dragon)</option>
-            <option value="dark">Sombrio (Dark)</option>
-            <option value="steel">Aço (Steel)</option>
-            <option value="fairy">Fada (Fairy)</option>
-          </select>
-        </div>
-      </div>
+  <script>
+    // --- LÓGICA DA CALCULADORA DE TEAM ---
+    const BROKE_MAXIMA = { 'SR': 3500, 'T1': 1280, 'T2': 900, 'T3': 700 };
 
-      <div class="eco-box" id="elementResults" style="border-left-color: var(--accent-alliance);"></div>
-    </div>
-  </div>
+    const STAR_RULES = {
+      'T3': {
+        '3': { food: 7, dd: 44, kk: 11 },
+        '2': { food: 3, dd: 24, kk: 6 },
+        '1': { food: 1, dd: 10, kk: 2 },
+        '0': { food: 0, dd: 0, kk: 0 }
+      },
+      'T2': {
+        '2': { food: 3, dd: 24, kk: 6 },
+        '1': { food: 1, dd: 10, kk: 2 },
+        '0': { food: 0, dd: 0, kk: 0 }
+      },
+      'T1': { '0': { food: 0, dd: 0, kk: 0 } },
+      'SR': { '0': { food: 0, dd: 0, kk: 0 } }
+    };
 
-  <!-- ABA 4: SIMULADOR DE XP -->
-  <div id="tabXP" class="tab-content">
-    <div class="card">
-      <h2 class="card-title">Simulador de Tempo de Upar (XP)</h2>
-      <div class="calc-grid">
-        <div class="input-group"><label for="currentXP">XP Atual:</label><input type="number" id="currentXP" value="1000000" oninput="calculateXP()"></div>
-        <div class="input-group"><label for="targetXP">XP Meta (Próximo Level/Meta):</label><input type="number" id="targetXP" value="2500000" oninput="calculateXP()"></div>
-        <div class="input-group"><label for="xpHour">Sua Média de XP por Hora:</label><input type="number" id="xpHour" value="300000" oninput="calculateXP()"></div>
-      </div>
+    const PRESETS = {
+      1: [
+        { name: 'Tangrowth', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/465.png' },
+        { name: 'Gogoat', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/673.png' },
+        { name: 'Shiny Victreebel', tier: 'T3', role: 'DPS', stars: 3, baseCost: 0, extraCost: 0, notes: '8x T3 para 3★', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/71.png' },
+        { name: 'Shiny Tangela', tier: 'T2', role: 'Support', stars: 2, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/114.png' },
+        { name: 'Shiny Bellossom', tier: 'T3', role: 'DPS', stars: 3, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/182.png' },
+        { name: 'Shiny Exeggutor', tier: 'T2', role: 'Support', stars: 2, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/103.png' }
+      ],
+      2: [
+        { name: 'Tangrowth', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/465.png' },
+        { name: 'Gogoat', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/673.png' },
+        { name: 'Shiny Venusaur', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/3.png' },
+        { name: 'Shiny Meganium', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/154.png' },
+        { name: 'Shiny Tangela', tier: 'T2', role: 'Support', stars: 2, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/114.png' },
+        { name: 'Shiny Exeggutor', tier: 'T2', role: 'Support', stars: 2, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/103.png' }
+      ],
+      3: [
+        { name: 'Tangrowth', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/465.png' },
+        { name: 'Gogoat', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/673.png' },
+        { name: 'Shiny Venusaur', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/3.png' },
+        { name: 'Shiny Meganium', tier: 'T1', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/154.png' },
+        { name: 'Shiny Tangrowth', tier: 'SR', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/465.png' },
+        { name: 'Shiny Gogoat', tier: 'SR', role: 'Offtank', stars: 0, baseCost: 0, extraCost: 0, notes: '', img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/673.png' }
+      ]
+    };
 
-      <div class="result-box">
-        <span style="font-size: 14px; color: #8b949e;">Tempo Estimado Necessário:</span>
-        <div class="result-value" id="xpTimeResult">0h 0m</div>
-        <p id="xpDetails" style="font-size: 13px; color: #8b949e; margin-top: 5px; margin-bottom: 0;"></p>
-      </div>
-    </div>
-  </div>
+    let activePhase = 3;
+    let team = JSON.parse(JSON.stringify(PRESETS[3]));
 
-  <!-- ABA 5: GERENCIADOR DE COOLDOWNS -->
-  <div id="tabCooldowns" class="tab-content">
-    <div class="card">
-      <h2 class="card-title">Novo Temporizador / Daily Quest</h2>
-      <div class="calc-grid">
-        <div class="input-group"><label for="cdName">Nome do Boss / Quest:</label><input type="text" id="cdName" placeholder="Ex: Boss Shiny Pachirisu"></div>
-        <div class="input-group"><label for="cdHours">Tempo de Cooldown (Horas):</label><input type="number" id="cdHours" value="24"></div>
-      </div>
-      <button class="btn btn-blue" onclick="addCooldown()">Iniciar Timer</button>
-
-      <h3 style="color: var(--text-bright); margin-top: 24px;">Timers Ativos</h3>
-      <table>
-        <thead>
-          <tr><th>Nome</th><th>Tempo Restante</th><th>Status</th><th>Ação</th></tr>
-        </thead>
-        <tbody id="cdBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<script>
-  // TROCA DE ABAS
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    event.target.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
-  }
-
-  // --- LOGICA 1: CATCH & HISTORICO ---
-  const presets = [
-    { name: "T1", pity: 1280 }, { name: "SR", pity: 3560 },
-    { name: "UR", pity: 7120 }, { name: "Mythic", pity: 14240 }, { name: "Legendary", pity: 28480 }
-  ];
-
-  function calculateCatch() {
-    const ultraPity = parseFloat(document.getElementById("calcTier").value);
-    const ballMult = parseFloat(document.getElementById("calcBall").value);
-    const count = parseInt(document.getElementById("calcCount").value) || 0;
-
-    let globalBuff = 1.0;
-    if (document.getElementById("buffDouble").checked) globalBuff *= 2.0;
-    if (document.getElementById("buffCharm").checked) globalBuff *= 1.25;
-    if (document.getElementById("buffClan").checked) globalBuff *= 1.10;
-
-    const baseChancePerBall = ((1 / (ultraPity / 2)) * (ballMult / 2)) * globalBuff;
-    let prob = 1 - Math.pow(1 - baseChancePerBall, count);
-    prob = Math.max(0, Math.min(1, prob));
-
-    const percent = (prob * 100).toFixed(2);
-    document.getElementById("resultPercent").innerText = percent + "%";
-    document.getElementById("progressBar").style.width = Math.min(percent, 100) + "%";
-
-    const allianceLimit = Math.round((ultraPity * (2 / ballMult) * 0.5) / globalBuff);
-    const remaining = allianceLimit - count;
-    const statusEl = document.getElementById("resultStatus");
-
-    if (remaining > 0) {
-      statusEl.innerHTML = `Faltam <strong style="color: var(--text-bright);">${remaining}</strong> balls para atingir o limite ideal (${allianceLimit} balls).`;
-    } else {
-      statusEl.innerHTML = `<span style="color: var(--accent-premier);">Você ultrapassou o limite ideal (${allianceLimit} balls). Considere mudar para Ultra Ball.</span>`;
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(tb => tb.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
     }
 
-    const ballPrice = parseFloat(document.getElementById("ballPrice").value) || 0;
-    const marketPrice = parseFloat(document.getElementById("marketPrice").value) || 0;
-    const currentInvestment = count * ballPrice;
-    const limitInvestment = allianceLimit * ballPrice;
-
-    let ecoText = `<strong>Análise Financeira:</strong> Gasto atual: <strong>$${currentInvestment.toLocaleString()}</strong>. Custo até o limite: <strong>$${limitInvestment.toLocaleString()}</strong>.`;
-    if (marketPrice > 0) {
-      if (limitInvestment > marketPrice) {
-        ecoText += `<br><span style="color: var(--accent-premier);">⚠️ Custo da hunt ($${limitInvestment.toLocaleString()}) supera o preço de mercado ($${marketPrice.toLocaleString()}).</span>`;
-      } else {
-        ecoText += `<br><span style="color: var(--accent-green);">✔️ Hunt vantajosa em relação ao Market ($${marketPrice.toLocaleString()}).</span>`;
-      }
-    }
-    document.getElementById("ecoResult").innerHTML = ecoText;
-  }
-
-  function getHistory() { return JSON.parse(localStorage.getItem("pka_hunts") || "[]"); }
-  function addHistory() {
-    const poke = document.getElementById("histPoke").value.trim();
-    const balls = parseInt(document.getElementById("histBalls").value);
-    const status = document.getElementById("histStatus").value;
-    if (!poke || !balls) return alert("Preencha todos os campos do histórico.");
-    
-    const h = getHistory();
-    h.push({ date: new Date().toLocaleDateString('pt-BR'), poke, balls, status });
-    localStorage.setItem("pka_hunts", JSON.stringify(h));
-    document.getElementById("histPoke").value = "";
-    document.getElementById("histBalls").value = "";
-    renderHistory();
-  }
-  function removeHistory(i) {
-    const h = getHistory(); h.splice(i, 1);
-    localStorage.setItem("pka_hunts", JSON.stringify(h));
-    renderHistory();
-  }
-  function renderHistory() {
-    const h = getHistory();
-    const tbody = document.getElementById("historyBody");
-    tbody.innerHTML = h.length === 0 ? `<tr><td colspan="5" style="text-align:center; color:#8b949e;">Nenhuma hunt registrada.</td></tr>` : "";
-    h.forEach((item, index) => {
-      const color = item.status === "Pego" ? "var(--accent-green)" : "var(--accent-premier)";
-      tbody.innerHTML += `<tr><td>${item.date}</td><td><span class="highlight">${item.poke}</span></td><td>${item.balls.toLocaleString()}</td><td><strong style="color: ${color};">${item.status}</strong></td><td><button class="btn btn-danger" onclick="removeHistory(${index})" style="padding:4px 8px; font-size:12px;">X</button></td></tr>`;
-    });
-  }
-
-  // --- LOGICA 2: LUCRO POR HUNT ---
-  function calculateProfit() {
-    const minutes = parseFloat(document.getElementById("huntTime").value) || 1;
-    const raw = parseFloat(document.getElementById("rawCash").value) || 0;
-    const loot = parseFloat(document.getElementById("lootValue").value) || 0;
-    const supply = parseFloat(document.getElementById("supplyCost").value) || 0;
-
-    const netProfit = (raw + loot) - supply;
-    const profitPerHour = Math.round((netProfit / minutes) * 60);
-
-    const el = document.getElementById("profitPerHour");
-    el.innerText = `$${profitPerHour.toLocaleString()} / h`;
-    el.style.color = profitPerHour >= 0 ? "var(--accent-green)" : "var(--accent-premier)";
-
-    document.getElementById("profitDetails").innerText = `Lucro Líquido Total no Período: $${netProfit.toLocaleString()} em ${minutes} minutos.`;
-  }
-
-  // --- LOGICA 3: COUNTERS ELEMENTAIS ---
-  const typeChart = {
-    fire: { weak: ['water', 'ground', 'rock'], res: ['fire', 'grass', 'ice', 'bug', 'steel', 'fairy'] },
-    water: { weak: ['electric', 'grass'], res: ['fire', 'water', 'ice', 'steel'] },
-    grass: { weak: ['fire', 'ice', 'poison', 'flying', 'bug'], res: ['water', 'grass', 'electric', 'ground'] },
-    electric: { weak: ['ground'], res: ['electric', 'flying', 'steel'] },
-    ice: { weak: ['fire', 'fighting', 'rock', 'steel'], res: ['ice'] },
-    fighting: { weak: ['flying', 'psychic', 'fairy'], res: ['bug', 'rock', 'dark'] },
-    poison: { weak: ['ground', 'psychic'], res: ['grass', 'fighting', 'poison', 'bug', 'fairy'] },
-    ground: { weak: ['water', 'grass', 'ice'], res: ['poison', 'rock'], imm: ['electric'] },
-    flying: { weak: ['electric', 'ice', 'rock'], res: ['grass', 'fighting', 'bug'], imm: ['ground'] },
-    psychic: { weak: ['bug', 'ghost', 'dark'], res: ['fighting', 'psychic'] },
-    bug: { weak: ['fire', 'flying', 'rock'], res: ['grass', 'fighting', 'ground'] },
-    rock: { weak: ['water', 'grass', 'fighting', 'ground', 'steel'], res: ['normal', 'fire', 'poison', 'flying'] },
-    ghost: { weak: ['ghost', 'dark'], res: ['poison', 'bug'], imm: ['normal', 'fighting'] },
-    dragon: { weak: ['ice', 'dragon', 'fairy'], res: ['fire', 'water', 'grass', 'electric'] },
-    dark: { weak: ['fighting', 'bug', 'fairy'], res: ['ghost', 'dark'], imm: ['psychic'] },
-    steel: { weak: ['fire', 'fighting', 'ground'], res: ['normal', 'grass', 'ice', 'flying', 'psychic', 'bug', 'rock', 'dragon', 'steel', 'fairy'], imm: ['poison'] },
-    fairy: { weak: ['poison', 'steel'], res: ['fighting', 'bug', 'dark'], imm: ['dragon'] }
-  };
-
-  function calculateElements() {
-    const t1 = document.getElementById("type1").value;
-    const t2 = document.getElementById("type2").value;
-
-    const allTypes = Object.keys(typeChart);
-    let multipliers = {};
-    allTypes.forEach(t => multipliers[t] = 1.0);
-
-    // Aplica multiplicadores tipo 1
-    allTypes.forEach(t => {
-      if (typeChart[t1].weak.includes(t)) multipliers[t] *= 2.0;
-      if (typeChart[t1].res.includes(t)) multipliers[t] *= 0.5;
-      if (typeChart[t1].imm && typeChart[t1].imm.includes(t)) multipliers[t] *= 0.0;
-    });
-
-    // Aplica multiplicadores tipo 2 se existir
-    if (t2 !== 'none' && t2 !== t1) {
-      allTypes.forEach(t => {
-        if (typeChart[t2].weak.includes(t)) multipliers[t] *= 2.0;
-        if (typeChart[t2].res.includes(t)) multipliers[t] *= 0.5;
-        if (typeChart[t2].imm && typeChart[t2].imm.includes(t)) multipliers[t] *= 0.0;
+    function loadPresetPhase(phase) {
+      activePhase = phase;
+      team = JSON.parse(JSON.stringify(PRESETS[phase]));
+      
+      document.querySelectorAll('.phase-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', (idx + 1) === phase);
       });
+
+      renderTeam();
     }
 
-    let superWeak = [], weak = [], res = [], immune = [];
-    allTypes.forEach(t => {
-      if (multipliers[t] === 4.0) superWeak.push(t);
-      else if (multipliers[t] === 2.0) weak.push(t);
-      else if (multipliers[t] < 1.0 && multipliers[t] > 0) res.push(t);
-      else if (multipliers[t] === 0) immune.push(t);
-    });
-
-    let html = `<strong>Fraquezas Extremas (4x):</strong> ${superWeak.length ? superWeak.map(t => `<span class="type-badge" style="background:#dc2626;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}<br><br>`;
-    html += `<strong>Fraquezas (2x):</strong> ${weak.length ? weak.map(t => `<span class="type-badge" style="background:#d97706;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}<br><br>`;
-    html += `<strong>Resistências:</strong> ${res.length ? res.map(t => `<span class="type-badge" style="background:#2563eb;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}<br><br>`;
-    html += `<strong>Imunidades (0x):</strong> ${immune.length ? immune.map(t => `<span class="type-badge" style="background:#4b5563;">${t.toUpperCase()}</span>`).join(' ') : 'Nenhuma'}`;
-
-    document.getElementById("elementResults").innerHTML = html;
-  }
-
-  // --- LOGICA 4: SIMULADOR DE XP ---
-  function calculateXP() {
-    const cur = parseFloat(document.getElementById("currentXP").value) || 0;
-    const target = parseFloat(document.getElementById("targetXP").value) || 0;
-    const xpH = parseFloat(document.getElementById("xpHour").value) || 1;
-
-    const remaining = target - cur;
-    if (remaining <= 0) {
-      document.getElementById("xpTimeResult").innerText = "Meta Atingida!";
-      document.getElementById("xpDetails").innerText = "Sua XP atual já é maior ou igual à meta.";
-      return;
+    function getStarCost(tier, stars) {
+      if (STAR_RULES[tier] && STAR_RULES[tier][stars]) return STAR_RULES[tier][stars];
+      return { food: 0, dd: 0, kk: 0 };
     }
 
-    const hoursTotal = remaining / xpH;
-    const h = Math.floor(hoursTotal);
-    const m = Math.round((hoursTotal - h) * 60);
+    function updatePoke(index, key, value) {
+      if (key === 'baseCost' || key === 'extraCost' || key === 'stars') value = parseFloat(value) || 0;
+      team[index][key] = value;
+      calculateAll();
+    }
 
-    document.getElementById("xpTimeResult").innerText = `${h}h ${m}m`;
-    document.getElementById("xpDetails").innerText = `Faltam ${remaining.toLocaleString()} XP para a meta a uma taxa de ${xpH.toLocaleString()} XP/h.`;
-  }
+    function renderTeam() {
+      const container = document.getElementById('teamContainer');
+      container.innerHTML = '';
 
-  // --- LOGICA 5: GERENCIADOR DE COOLDOWNS ---
-  function getCDs() { return JSON.parse(localStorage.getItem("pka_cds") || "[]"); }
-  function addCooldown() {
-    const name = document.getElementById("cdName").value.trim();
-    const hours = parseFloat(document.getElementById("cdHours").value);
-    if (!name || !hours) return alert("Preencha o nome e o tempo do cooldown.");
+      team.forEach((poke, index) => {
+        const card = document.createElement('div');
+        card.className = 'poke-card';
+        const starCosts = getStarCost(poke.tier, poke.stars);
+        const maxBallsForCard = (1 + starCosts.food) * (BROKE_MAXIMA[poke.tier] || 0);
 
-    const cds = getCDs();
-    const endTime = Date.now() + (hours * 3600 * 1000);
-    cds.push({ name, endTime });
-    localStorage.setItem("pka_cds", JSON.stringify(cds));
-    document.getElementById("cdName").value = "";
-    renderCDs();
-  }
-  function removeCD(i) {
-    const cds = getCDs(); cds.splice(i, 1);
-    localStorage.setItem("pka_cds", JSON.stringify(cds));
-    renderCDs();
-  }
-  function renderCDs() {
-    const cds = getCDs();
-    const tbody = document.getElementById("cdBody");
-    tbody.innerHTML = cds.length === 0 ? `<tr><td colspan="4" style="text-align:center; color:#8b949e;">Nenhum timer ativo.</td></tr>` : "";
+        card.innerHTML = `
+          <div class="poke-header">
+            <div class="poke-info-left">
+              <div class="sprite-stage">
+                <img src="${poke.img}" class="poke-img" alt="${poke.name}">
+              </div>
+              <div>
+                <div class="poke-title">${poke.name}</div>
+                <div class="poke-role">${poke.role}</div>
+              </div>
+            </div>
+            <span class="tier-badge tier-${poke.tier}">${poke.tier}</span>
+          </div>
 
-    const now = Date.now();
-    cds.forEach((item, index) => {
-      const diff = item.endTime - now;
-      let statusText = "", color = "var(--accent-green)";
-      if (diff <= 0) {
-        statusText = "PRONTO / DISPONÍVEL!";
-        color = "var(--accent-green)";
-      } else {
-        const h = Math.floor(diff / (3600 * 1000));
-        const m = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
-        const s = Math.floor((diff % (60 * 1000)) / 1000);
-        statusText = `${h}h ${m}m ${s}s`;
-        color = "var(--accent-premier)";
+          <div class="card-inputs">
+            <div class="input-group">
+              <label>Preço Base (KKs)</label>
+              <input type="number" value="${poke.baseCost || 0}" onchange="updatePoke(${index}, 'baseCost', this.value)">
+            </div>
+            <div class="input-group">
+              <label>Extras/Held (KKs)</label>
+              <input type="number" value="${poke.extraCost || 0}" onchange="updatePoke(${index}, 'extraCost', this.value)">
+            </div>
+            <div class="input-group">
+              <label>Tier</label>
+              <select onchange="updatePoke(${index}, 'tier', this.value)">
+                <option value="T1" ${poke.tier === 'T1' ? 'selected' : ''}>T1</option>
+                <option value="T2" ${poke.tier === 'T2' ? 'selected' : ''}>T2</option>
+                <option value="T3" ${poke.tier === 'T3' ? 'selected' : ''}>T3</option>
+                <option value="SR" ${poke.tier === 'SR' ? 'selected' : ''}>SR</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Estrelas (★)</label>
+              <select onchange="updatePoke(${index}, 'stars', this.value)">
+                <option value="0" ${poke.stars == 0 ? 'selected' : ''}>0★</option>
+                <option value="1" ${poke.stars == 1 ? 'selected' : ''}>1★</option>
+                <option value="2" ${poke.stars == 2 ? 'selected' : ''}>2★</option>
+                <option value="3" ${poke.stars == 3 ? 'selected' : ''}>3★</option>
+              </select>
+            </div>
+
+            <div class="star-cost-badge">
+              <div>Foods: <span>${starCosts.food}</span></div>
+              <div>DDs: <span>${starCosts.dd}</span></div>
+              <div>Balls Max: <span>${maxBallsForCard.toLocaleString('pt-BR')}</span></div>
+            </div>
+          </div>
+
+          <textarea class="notes-area" placeholder="Observações / Held / TMs..." onchange="updatePoke(${index}, 'notes', this.value)">${poke.notes || ''}</textarea>
+        `;
+        container.appendChild(card);
+      });
+
+      calculateAll();
+    }
+
+    function calculateAll() {
+      const ddPrice = parseFloat(document.getElementById('ddPriceInput').value) || 0;
+      const shinysPerHour = parseFloat(document.getElementById('shinysPerHourInput').value) || 40;
+
+      let totalDirectKK = 0;
+      let totalStarKK = 0;
+      let totalDD = 0;
+      let totalFoods = 0;
+      let totalMaxBalls = 0;
+      let totalPokesCount = 0;
+
+      team.forEach(poke => {
+        totalDirectKK += (poke.baseCost || 0) + (poke.extraCost || 0);
+        const starCost = getStarCost(poke.tier, poke.stars);
+        totalStarKK += starCost.kk;
+        totalDD += starCost.dd;
+        totalFoods += starCost.food;
+
+        const countForThisSlot = 1 + starCost.food;
+        totalPokesCount += countForThisSlot;
+        totalMaxBalls += (countForThisSlot * (BROKE_MAXIMA[poke.tier] || 0));
+      });
+
+      const totalDDinKK = totalDD * ddPrice;
+      const grandTotal = totalDirectKK + totalStarKK + totalDDinKK;
+      const totalHours = Math.ceil(totalMaxBalls / (shinysPerHour || 1));
+      const totalDays = (totalHours / 24).toFixed(1);
+
+      document.getElementById('totalTeamCost').innerText = `${grandTotal.toFixed(1)} KK`;
+      document.getElementById('totalMaxBalls').innerText = `${totalMaxBalls.toLocaleString('pt-BR')} Balls`;
+      document.getElementById('ballsBreakdownSub').innerText = `${totalPokesCount} Pokés totais a pegar (c/ food)`;
+      document.getElementById('totalHoursNeeded').innerText = `${totalHours}h Farm`;
+      document.getElementById('daysNeededSub').innerText = `~${totalDays} Dias full farm (a ${shinysPerHour}/h)`;
+      document.getElementById('totalDD').innerText = `${totalDD} DD`;
+      document.getElementById('ddCostSub').innerText = `~${totalDDinKK.toFixed(1)} KKs em DDs`;
+      document.getElementById('totalFoods').innerText = `${totalFoods} Pokés`;
+    }
+
+    // --- LÓGICA DO ANALISADOR DE LOOT ---
+    function loadSampleLootJson() {
+      const sample = {
+        "duration": "01:00:00",
+        "loot": {
+          "items": [
+            { "name": "Leaf Stone", "count": 12, "type": "market", "estPrice": "15.000" },
+            { "name": "Held Tier 1 (Defense)", "count": 1, "type": "market", "estPrice": "250.000" },
+            { "name": "Essence of Grass", "count": 450, "type": "talentos" },
+            { "name": "Vine Fiber", "count": 120, "type": "talentos" },
+            { "name": "Seed", "count": 1400, "type": "npc", "estPrice": "70" },
+            { "name": "Leaves", "count": 2300, "type": "npc", "estPrice": "40" }
+          ]
+        }
+      };
+      document.getElementById('lootJsonInput').value = JSON.stringify(sample, null, 2);
+    }
+
+    function analyzeLootJson() {
+      const raw = document.getElementById('lootJsonInput').value.trim();
+      if (!raw) return alert("Por favor, cole um JSON válido da hunt.");
+
+      try {
+        const data = JSON.parse(raw);
+        const items = data.loot?.items || data.items || [];
+
+        const listTalentos = document.getElementById('listTalentos');
+        const listMarket = document.getElementById('listMarket');
+        const listNpc = document.getElementById('listNpc');
+
+        listTalentos.innerHTML = '';
+        listMarket.innerHTML = '';
+        listNpc.innerHTML = '';
+
+        let cTalentos = 0, cMarket = 0, cNpc = 0;
+
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'loot-item-card';
+
+          const priceText = item.estPrice ? ` (${item.estPrice} kks)` : '';
+          card.innerHTML = `
+            <span class="loot-item-name">${item.name}</span>
+            <div>
+              <span class="loot-item-qty">x${item.count}</span>
+              <span class="loot-item-price">${priceText}</span>
+            </div>
+          `;
+
+          if (item.type === 'talentos' || item.name.toLowerCase().includes('essence') || item.name.toLowerCase().includes('fiber')) {
+            listTalentos.appendChild(card);
+            cTalentos++;
+          } else if (item.type === 'market' || item.name.toLowerCase().includes('stone') || item.name.toLowerCase().includes('held')) {
+            listMarket.appendChild(card);
+            cMarket++;
+          } else {
+            listNpc.appendChild(card);
+            cNpc++;
+          }
+        });
+
+        document.getElementById('countTalentos').innerText = `${cTalentos} itens`;
+        document.getElementById('countMarket').innerText = `${cMarket} itens`;
+        document.getElementById('countNpc').innerText = `${cNpc} itens`;
+
+        document.getElementById('lootResultsArea').style.display = 'grid';
+      } catch (err) {
+        alert("Erro ao ler o JSON. Verifique a formatação do texto inserido.");
       }
-      tbody.innerHTML += `<tr><td><span class="highlight">${item.name}</span></td><td style="color:${color}; font-weight:bold;">${statusText}</td><td>${diff <= 0 ? 'Disponível' : 'Em Cooldown'}</td><td><button class="btn btn-danger" onclick="removeCD(${index})" style="padding:4px 8px; font-size:12px;">X</button></td></tr>`;
-    });
-  }
+    }
 
-  // Atualiza timers a cada segundo
-  setInterval(renderCDs, 1000);
+    // --- ANIMAÇÃO DE PARTÍCULAS (FOLHAS) ---
+    const canvas = document.getElementById('leafCanvas');
+    const ctx = canvas.getContext('2d');
 
-  // Inicializações
-  calculateCatch();
-  renderHistory();
-  calculateProfit();
-  calculateElements();
-  calculateXP();
-  renderCDs();
-</script>
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
+    const leaves = Array.from({ length: 30 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 8 + 4,
+      speedY: Math.random() * 1.2 + 0.5,
+      speedX: Math.random() * 0.8 - 0.4,
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.03
+    }));
+
+    function drawLeaves() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#22c55e';
+
+      leaves.forEach(leaf => {
+        ctx.save();
+        ctx.translate(leaf.x, leaf.y);
+        ctx.rotate(leaf.angle);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, leaf.size, leaf.size / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        leaf.y += leaf.speedY;
+        leaf.x += leaf.speedX;
+        leaf.angle += leaf.spin;
+
+        if (leaf.y > canvas.height) {
+          leaf.y = -10;
+          leaf.x = Math.random() * canvas.width;
+        }
+      });
+
+      requestAnimationFrame(drawLeaves);
+    }
+
+    // Inicialização
+    renderTeam();
+    drawLeaves();
+  </script>
 </body>
 </html>
